@@ -1,20 +1,21 @@
-// Author(s): Marcellus Von Sacramento
-// Date created: 02/18/2021
-// Program name: Text Analyzer
 /*
 
-Purpose:
-The purpose of this program is to read text from a file,
-search for unique word(s), keep track of the number of the unique word(s),
-sort the word(s) list, find the number of 1-3 character word(s),
-find the longest word(s), and finally display the output and write
-the output on an output file. This program has the capability to filter
-non-Alphabetic characters. And, will always convert the first letter
-of the words to uppercase.
+Filename: main.cpp
+Date created: 02/18/2021
 
-   e.g.
-      he3ll0o  ----> filter function ----> Hello
-      w0or1ld  ----> filter function ----> World
+Author(s): Marcellus Von Sacramento
+
+Purpose: The purpose of this program is to read text from a file,
+         search for unique word(s), keep track of the number of the unique word(s),
+         sort the word(s) list, find the number of 1-3 character word(s),
+         find the longest word(s), and finally display the output and write
+         the output on an output file. This program has the capability to filter
+         non-Alphabetic characters. And, will always convert the first letter
+         of the words to uppercase.
+
+         e.g.
+              he3ll0o  ----> filter function ----> Hello
+              w0or1ld  ----> filter function ----> World
 
 Note: Empty files are allowed and will be checked.
       Even file with pure numeric(s) or pure punctuation(s)
@@ -31,11 +32,12 @@ Program's known limitation:
       hello \t world ----> will result to ----> Helloworld
       bye \t world ----> will result to ----> Byeworld
 
+
+Copyright(c)
+
+Last date modified: 01/19/2022
+
 */
-
-// last modified: 02/28/2021
-
-
 
 #include <iostream>
 #include <fstream>
@@ -63,14 +65,17 @@ struct Unique_Word
 }; // end of struct
 
 
-void tokenize_Line(char [], Unique_Word *&, int &, int &); // tokenize passed CString
-void filter_Characters(char []); // remove non-Alphabetic characters
-bool checkif_newUniq(const char [], const Unique_Word [], const int &, int &); // validate existence of the word in the array
-void expand_Arr(Unique_Word *&, int &); // expand array as new unique word is found
+// tokenize passed CString
+void tokenize_Line(char [], Unique_Word *&, int &, int &);
 
-// sort the list using bubble sort algorithm
-void sort_Alphabetic(Unique_Word [], const int &);
-void swap_Element(Unique_Word &, Unique_Word &);
+// remove non-Alphabetic characters
+void filter_Characters(char []);
+
+// validate existence of the word in the array
+bool checkif_newUniq(const char [], const Unique_Word [], const int &, int &);
+
+// expand array as new unique word is found
+void expand_Arr(Unique_Word *&, int &);
 
 // find longest word loc, 1-3 char words loc, word occured most loc. try const int &
 void word_Info(const Unique_Word [], const int &, int &, int &, int &);
@@ -78,6 +83,19 @@ void word_Info(const Unique_Word [], const int &, int &, int &, int &);
 // display to console and write to file
 void display_Output(const Unique_Word [], const int &, const int &, const int &, const int &); // try const int&
 void write_Fout(ofstream &, const Unique_Word [], const int &, const int &, const int &, const int &); // try const int&
+
+
+/***** sorting algorithms *****/
+// sort the list using bubble sort algorithm
+void BubbleSort(Unique_Word [], const int &);
+
+// sort the list using QuickSort algorithm
+void QuickSort(Unique_Word [], int, int);
+int partition(Unique_Word [], int, int);
+
+// for sorting algorithms above
+void swap_Element(Unique_Word &, Unique_Word &);
+
 
 int main()
 {
@@ -116,6 +134,7 @@ int main()
       only_WS     = true;
 
       // change this depending on OS
+      // may be a bad thing to add this
       system("cls");
 
       // program termination instruction
@@ -213,7 +232,9 @@ int main()
       }
       else // if alphabetic is found, call rest of functions
       {
-         sort_Alphabetic(word_Array, dyna_Size);
+
+         QuickSort(word_Array, 0, dyna_Size - 1);
+         //BubbleSort(word_Array, dyna_Size); // commented out for testing
          word_Info(word_Array, dyna_Size, long_Loc, most_Loc, short_Count);
          display_Output(word_Array, dyna_Size, long_Loc, most_Loc, short_Count);
          write_Fout(fout, word_Array, dyna_Size, long_Loc, most_Loc, short_Count);
@@ -231,15 +252,12 @@ int main()
 
    }while(true);
 
-
-   // end of function
-}
+} // end of main()
 
 // process each line from input file.
 void tokenize_Line(char current_Line[], Unique_Word *&word_Array, int &total_Words, int &dyna_Size)
 {
    char *copy_currentLine = nullptr; // copy current_Line for strtok() to destroy
-
    char *current_Word = nullptr; // hold each token
    char *refined_Word = nullptr; // will hold the current_Word after
                                  // filtering out the non-Alphabetic
@@ -274,7 +292,7 @@ void tokenize_Line(char current_Line[], Unique_Word *&word_Array, int &total_Wor
          current_Word = strtok(nullptr, " .,;!?");
          continue;
       }
-      else // something was formed during fileration
+      else // something was formed during filtration
       {
          total_Words++; // update word count
       }
@@ -311,7 +329,6 @@ void tokenize_Line(char current_Line[], Unique_Word *&word_Array, int &total_Wor
          word_Array[array_Index].found_Count++; // just increase count of the word if not a new word.
          delete [] refined_Word; // deallocate memory
       }
-
       refined_Word = nullptr;
 
       // take next token
@@ -319,12 +336,9 @@ void tokenize_Line(char current_Line[], Unique_Word *&word_Array, int &total_Wor
    }
 
    delete [] copy_currentLine; // deallocate memory
-
    copy_currentLine = nullptr;
 
-
-   // end of function
-}
+} // end of tokenize_Line()
 
 // filter out the non-Alphabetic character(s)
 void filter_Characters(char current_Word[])
@@ -364,9 +378,7 @@ void filter_Characters(char current_Word[])
    // capitalize first letter
    current_Word[0] = toupper(current_Word[0]);
 
-
-   // end of function
-}
+} // end of filter_Characters()
 
 // check if the word is not in unique word array
 bool checkif_newUniq(const char refined_Word[], const Unique_Word word_Array[], const int &dyna_Size, int &array_Index)
@@ -384,9 +396,7 @@ bool checkif_newUniq(const char refined_Word[], const Unique_Word word_Array[], 
    // if the for() loop didn't execute, or finished executing without finding a match then word is new, return true
    return(true);
 
-
-   // end of function
-}
+} // end of checkif_newUniq()
 
 // expands array size as needed
 void expand_Arr(Unique_Word *&word_Array, int &dyna_Size)
@@ -414,52 +424,9 @@ void expand_Arr(Unique_Word *&word_Array, int &dyna_Size)
       temp_Ptr = nullptr; // may be unnecessary since end of function destroys this variable
    }
 
-
-   // end of function
-}
-
-// sort using bubble sort algorithm
-void sort_Alphabetic(Unique_Word word_Array[], const int &dyna_Size)
-{
-   bool no_Swap;
-   no_Swap = true; // set to true so the loop will execute
-
-   for(int i = 0; ((i < (dyna_Size - 1)) && (no_Swap)); i++)
-   {
-      for(int j = 0; j < ((dyna_Size - 1) - i); j++) // -i shrink the comparison space, no need to check elements to the right
-      {
-         if(strcmp(word_Array[j].the_Word, word_Array[j+1].the_Word) > 0)
-         {
-            swap_Element(word_Array[j], word_Array[j+1]);
-            no_Swap = false;
-         }
-      }
-
-      // if no swap was made after the latest pass, break and return to caller function
-      if(no_Swap)
-      {
-         break;
-      }
-      else // if swap was made, make another pass.
-      {
-         no_Swap = true;
-      }
-   }
+} // end of expand_Arr()
 
 
-   // end of function
-}
-
-// switch elements values
-void swap_Element(Unique_Word &element_1, Unique_Word &element_2)
-{
-   Unique_Word temp_var = element_1;
-   element_1 = element_2;
-   element_2 = temp_var;
-
-
-   // end of function
-}
 
 // gather word information to be used for taking word statistics
 void word_Info(const Unique_Word word_Array[], const int &dyna_Size, int &long_Loc, int &most_Loc, int &short_Count)
@@ -469,6 +436,7 @@ void word_Info(const Unique_Word word_Array[], const int &dyna_Size, int &long_L
 
    srand(seed);
 
+   // this will go through the list
    for(int i = 0; i < dyna_Size; i++)
    {
       // find index of longest word in the array
@@ -508,9 +476,11 @@ void word_Info(const Unique_Word word_Array[], const int &dyna_Size, int &long_L
       }
    }
 
+} // end of word_Info()
 
-   // end of function
-}
+
+
+/***** start of I/O functions implementations *****/
 
 // display output to console
 void display_Output(const Unique_Word word_Array[], const int &dyna_Size, const int &long_Loc, const int &most_Loc, const int &short_Count) // try const int
@@ -584,9 +554,7 @@ void display_Output(const Unique_Word word_Array[], const int &dyna_Size, const 
         << "Word that occurred most is: " << word_Array[most_Loc].the_Word << "\n"
         << "Number of short word(s) found is: " << short_Count << "\n";
 
-
-   // end of function
-}
+} // end of display_Output()
 
 // write to output file
 // Note: the code is almost exactly the same as display_Output() function
@@ -660,6 +628,102 @@ void write_Fout(ofstream &fout, const Unique_Word word_Array[], const int &dyna_
         << "Word that occurred most is: " << word_Array[most_Loc].the_Word << "\n"
         << "Number of short word(s) found is: " << short_Count << "\n";
 
+} // end of write_Fout()
 
-   // end of function
-}
+/***** end of I/O functions implementations *****/
+
+
+/****** start of sorting algorithms implementation *****/
+
+// switch elements values
+// used by QuickSort() and BubbleSort()
+void swap_Element(Unique_Word &word1, Unique_Word &word2)
+{
+   Unique_Word temp_var = word1;
+   word1 = word2;
+   word2 = temp_var;
+
+} // end of swap_Element()
+
+// for QuickSort()
+int partition(Unique_Word word_Array[], int low, int high)
+{
+    char* pivot = word_Array[high].the_Word;
+
+    int LEFT = low;
+    int RIGHT = high;
+
+
+    while(LEFT < RIGHT)
+    {
+
+        while((strcmp(word_Array[LEFT].the_Word, pivot) < 0) && LEFT != RIGHT)
+        {
+           ++LEFT;
+        }
+
+        while((strcmp(word_Array[RIGHT].the_Word, pivot) > 0) && RIGHT != LEFT)
+        {
+            --RIGHT;
+        }
+
+        if(strcmp(word_Array[RIGHT].the_Word, word_Array[LEFT].the_Word) == 0)
+        {
+            ++LEFT;
+            continue;
+        }
+
+        if(LEFT != RIGHT)
+        {
+            swap_Element(word_Array[LEFT], word_Array[RIGHT]);
+        }
+    }
+
+    return(LEFT - 1);
+
+} // end of partition()
+
+void QuickSort(Unique_Word word_Array[], int low, int high)
+{
+    if(low < high)
+    {
+        int pivotLoc = partition(word_Array, low, high);
+
+        QuickSort(word_Array, low, pivotLoc - 1);
+        QuickSort(word_Array, pivotLoc + 1, high);
+    }
+} // end of QuickSort()
+
+
+
+void BubbleSort(Unique_Word word_Array[], const int &dyna_Size)
+{
+   bool no_Swap;
+   no_Swap = true; // set to true so the loop will execute
+
+   for(int i = 0; ((i < (dyna_Size - 1)) && (no_Swap)); i++)
+   {
+      for(int j = 0; j < ((dyna_Size - 1) - i); j++) // -i shrink the comparison space, no need to check elements to the right
+      {
+         if(strcmp(word_Array[j].the_Word, word_Array[j+1].the_Word) > 0)
+         {
+            swap_Element(word_Array[j], word_Array[j+1]);
+            no_Swap = false;
+         }
+      }
+
+      // if no swap was made after the latest pass, break and return to caller function
+      if(no_Swap)
+      {
+         break;
+      }
+      else // if swap was made, make another pass.
+      {
+         no_Swap = true;
+      }
+   }
+
+} // end of BubbleSort()
+
+/****** end of sorting algorithms implementation *****/
+
